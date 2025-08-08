@@ -1,0 +1,2 @@
+1|shirt
+2|pants
