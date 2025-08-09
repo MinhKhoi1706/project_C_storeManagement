@@ -5,9 +5,19 @@
 #include <conio.h>
 #include "function.h"
 #include "datatype.h"
+//category
 #define MAX_CATEGORY 100
+//ADMIN
 #define ADMIN_EMAIL "minhkhoi@gmail.com"
 #define ADMIN_PASSWORD "1234"
+//product
+#define MAX_PRODUCT 100
+
+int categoryCount;
+Category categories[MAX_CATEGORY];
+
+int productCount;
+Product products[MAX_PRODUCT];
 
 int role(){
 	int choice;
@@ -38,6 +48,30 @@ int role(){
 	}while(choice != 0);
 }
 
+
+void inputPassword(char *password, int maxLen) {
+    int i = 0;
+    char ch;
+
+    while (1) {
+        ch = getch();
+        if (ch == 13) { 
+            password[i] = '\0';
+            break;
+        } 
+        else if (ch == 8) { 
+            if (i > 0) {
+                i--;
+                printf("\b \b"); 
+            }
+        } 
+        else if (i < maxLen - 1) {
+            password[i++] = ch;
+            printf("*");
+        }
+    }
+}
+
 void login() {
     char email[20], password[10];
 	system("cls");
@@ -50,7 +84,7 @@ void login() {
         printf("Email: ");
         scanf("%s", email);
         printf("Password: ");
-        scanf("%s", password);
+        inputPassword(password, sizeof(password));
 
         
         if (strcmp(email, ADMIN_EMAIL) == 0 && strcmp(password, ADMIN_PASSWORD) == 0) {
@@ -83,7 +117,7 @@ int mainMenu() {
                 break;
             case 2:
                 system("cls");
-                
+                productMenu();
                 break;
             case 0:
                 printf("\nlog out\n");
@@ -96,6 +130,198 @@ int mainMenu() {
     }
 }
 
+//PRODUCT
+
+void productMenu(){
+	int choice;
+	
+	while(1){
+		system("cls");
+		printf("\n***System Management System Using C***\n");
+		printf("\n=============MENU=============\n");
+		printf("[1] add product\n");
+        printf("[2] show all products\n");
+        printf("[3] edit product\n");
+        printf("[4] delete product\n");
+        printf("[5] search product by name\n");
+        printf("[6] sort products by price\n");
+        printf("[7] filter products\n");
+        printf("[0] exit\n");
+        printf("====================================\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+		
+		
+		switch(choice){
+			case 1:
+                addProduct();
+                break;
+            case 2:
+                showAllProduct();
+                break;
+            case 3:
+                
+                break;
+            case 4:
+                
+                break;
+            case 5:
+                
+                break;
+            case 6:
+                
+                break;
+            case 7:
+                
+                break;
+            case 0:
+                return;
+            default:
+                printf("invalid choice!\n");
+                backToMenu();
+                break;
+		}
+	}
+	
+}
+
+void addProduct() {
+    system("cls");
+    if (productCount >= MAX_PRODUCT) {
+        printf("product list is full!\n");
+        return;
+    }
+
+    printf("\n=== enter product ===\n");
+
+    char tempId[10];
+    int isDuplicate;
+    do {
+        isDuplicate = 0;
+        printf("product ID: ");
+        scanf("%s", tempId);
+        while (getchar() != '\n');
+        for (int i = 0; i < productCount; i++) {
+            if (strcmp(products[i].productId, tempId) == 0) {
+                isDuplicate = 1;
+                printf("ID already exists!\n");
+                break;
+            }
+        }
+    } while (isDuplicate);
+    strcpy(products[productCount].productId, tempId);
+
+    char tempName[12];
+    int isValid;
+    do {
+        isValid = 1;
+        printf("enter product name (max 10 characters): ");
+        fgets(tempName, sizeof(tempName), stdin);
+        if (strchr(tempName, '\n') == NULL) {
+            while (getchar() != '\n');
+            printf("name too long!\n");
+            isValid = 0;
+            continue;
+        }
+        tempName[strcspn(tempName, "\n")] = '\0';
+        int allSpace = 1;
+        for (int i = 0; tempName[i] != '\0'; i++) {
+            if (tempName[i] != ' ') {
+                allSpace = 0;
+                break;
+            }
+        }
+        if (strlen(tempName) == 0 || allSpace) {
+            printf("name cannot be empty!\n");
+            isValid = 0;
+            continue;
+        }
+        for (int i = 0; i < productCount; i++) {
+            if (strcmp(products[i].productName, tempName) == 0) {
+                printf("product name already exists!\n");
+                isValid = 0;
+                break;
+            }
+        }
+    } while (!isValid);
+    strcpy(products[productCount].productName, tempName);
+
+    do {
+        printf("enter product price: ");
+        if (scanf("%f", &products[productCount].price) != 1 || products[productCount].price <= 0) {
+            printf("invalid price!\n");
+            while (getchar() != '\n');
+        } else {
+            break;
+        }
+    } while (1);
+    while (getchar() != '\n');
+
+    do {
+        printf("enter product quantity: ");
+        if (scanf("%d", &products[productCount].quantity) != 1 || products[productCount].quantity < 0) {
+            printf("invalid quantity!\n");
+            while (getchar() != '\n');
+        } else {
+            break;
+        }
+    } while (1);
+    while (getchar() != '\n');
+	renderCategory();
+    do {
+        isValid = 0;
+        printf("enter category ID: ");
+        scanf("%s", products[productCount].categoryId);
+        while (getchar() != '\n');
+        for (int i = 0; i < categoryCount; i++) {
+            if (strcmp(categories[i].categoryId, products[productCount].categoryId) == 0) {
+                isValid = 1;
+                break;
+            }
+        }
+        if (!isValid) {
+            printf("category ID does not exist!\n");
+        }
+    } while (!isValid);
+
+    productCount++;
+    printf("product added successfully!\n");
+    saveFile("product.txt");
+    backToMenu();
+}
+
+void showAllProduct() {
+    system("cls");
+    if (productCount == 0) {
+        printf("no products available!\n");
+        backToMenu();
+        return;
+    }
+
+    printf("\n%-10s %-30s %-10s %-10s %-20s\n", 
+           "ID", "Name", "Price", "Quantity", "Category");
+    printf("--------------------------------------------------------------------------------\n");
+
+    for (int i = 0; i < productCount; i++) {
+        char categoryName[50] = "N/A";
+        for (int j = 0; j < categoryCount; j++) {
+            if (strcmp(products[i].categoryId, categories[j].categoryId) == 0) {
+                strcpy(categoryName, categories[j].categoryName);
+                break;
+            }
+        }
+        printf("%-10s %-30s %-10.2f %-10d %-20s\n",
+               products[i].productId,
+               products[i].productName,
+               products[i].price,
+               products[i].quantity,
+               categoryName);
+    }
+    backToMenu();
+}
+
+
+//CATEGORY
 void menu(){
 	int choice;
 	
@@ -151,9 +377,6 @@ void menu(){
 	
 }
 
-int categoryCount;
-Category categories[MAX_CATEGORY];
-
 void backToMenu() {
     char ch;
     printf("\n[0] back to menu: ");
@@ -195,17 +418,17 @@ void addCategory() {
 
     strcpy(categories[categoryCount].categoryId, tempId);
 
-    char tempName[101];
+    char tempName[12];
     int isValid;
 
     do {
         isValid = 1;
-        printf("enter category name (max 100 character): ");
+        printf("enter category name (max 10 character): ");
         fgets(tempName, sizeof(tempName), stdin);
 
         if (strchr(tempName, '\n') == NULL) {
             int ch;
-            while ((ch = getchar()) != '\n' && ch != EOF);
+            while ((ch = getchar()) != '\n');
             printf("name too long!\n");
             isValid = 0;
             continue;
@@ -246,6 +469,21 @@ void addCategory() {
     
 }
 
+void renderCategory() {
+	printf("\n*** CATEGORY LIST ***\n");
+    printf("|--------------|-----------------------------|\n");
+    printf("| Category ID  | Category Name               |\n");
+    printf("|--------------|-----------------------------|\n");
+
+    for (int i = 0; i < categoryCount; i++) {
+        printf("| %-12s | %-27s |\n",
+               categories[i].categoryId,
+               categories[i].categoryName);
+    }
+
+    printf("|--------------|-----------------------------|\n");
+
+}
 
 void showAllCategory() {
 	system("cls");
@@ -301,7 +539,7 @@ void editCategory() {
     }
 
     printf("\nupdate successfully\n");
-
+	saveFile("category.txt");
     backToMenu();
 	return;
 }
@@ -349,7 +587,7 @@ void deleteCategory() {
     } else {
         printf("\ndelete cancelled.\n");
     }
-
+	saveFile("category.txt");
     backToMenu();
 	return;
 }
@@ -465,6 +703,7 @@ void searchCategory() {
     }
 
 	backToMenu();
+	saveFile("category.txt");
 	return;
 }
 
