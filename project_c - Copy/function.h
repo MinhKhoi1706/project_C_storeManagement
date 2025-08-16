@@ -2,20 +2,26 @@
 #define FUNCTION_H
 #include "datatype.h"
 
-void loadFile(const char *file);
-void saveFile(const char *file);
+void login();
+int mainMenu();
+void menu();
+
+void productMenu();
+void addProduct();
+void showAllProduct();
+void editProduct();
+void deleteProduct();
+
 void addCategory();
 void showAllCategory();
 void editCategory();
 void deleteCategory();
-void sortCategoryMenu();
 void sortCategoryByName(int n);
+void sortCategoryMenu();
 void searchCategory();
+void renderCategory();
 void backToMenu();
-void menu();
-void login();
-int role();
-int mainMenu();
-
+void saveFile(const char *file);
+void loadFile(const char *file);
 
 

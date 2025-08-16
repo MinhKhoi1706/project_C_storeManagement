@@ -160,10 +160,10 @@ void productMenu(){
                 showAllProduct();
                 break;
             case 3:
-                
+                editProduct();
                 break;
             case 4:
-                
+                deleteProduct();
                 break;
             case 5:
                 
@@ -286,7 +286,7 @@ void addProduct() {
 
     productCount++;
     printf("product added successfully!\n");
-    saveFile("product.txt");
+    saveProductFile("product.txt"); 
     backToMenu();
 }
 
@@ -318,6 +318,154 @@ void showAllProduct() {
                categoryName);
     }
     backToMenu();
+}
+
+void editProduct() {
+	system("cls");
+    char id[10];
+    int found = 0;
+
+    printf("enter the product ID to edit: ");
+    scanf("%s", id);
+
+    for (int i = 0; i < productCount; i++) {
+        if (strcmp(products[i].productId, id) == 0) {
+            found = 1;
+
+            printf("current product name: %s\n", products[i].productName);
+            getchar();
+            printf("enter new product name: ");
+            fgets(products[i].productName, sizeof(products[i].productName), stdin);
+            products[i].productName[strcspn(products[i].productName, "\n")] = '\0';
+			
+			renderCategory();
+            printf("current category ID: %s\n", products[i].categoryId);
+            int isValid;
+            do {
+                isValid = 0;
+                printf("enter new category ID: ");
+                scanf("%s", products[i].categoryId);
+                while (getchar() != '\n');
+                for (int j = 0; j < categoryCount; j++) {
+                    if (strcmp(categories[j].categoryId, products[i].categoryId) == 0) {
+                        isValid = 1;
+                        break;
+                    }
+                }
+                if (!isValid) printf("category ID does not exist!\n");
+            } while (!isValid);
+
+            printf("current quantity: %d\n", products[i].quantity);
+            printf("enter new quantity: ");
+            scanf("%d", &products[i].quantity);
+
+            printf("current price: %.2f\n", products[i].price);
+            printf("enter new price: ");
+            scanf("%f", &products[i].price);
+
+            printf("product updated successfully!\n");
+            break;
+        }
+    }
+
+    if (!found) {
+        printf("no product found ID %s\n", id);
+    }
+    saveProductFile("product.txt"); 
+    backToMenu();
+}
+
+void deleteProduct() {
+    system("cls");
+
+    if (productCount == 0) {
+        printf("no products available to delete.\n");
+        backToMenu();
+        return;
+    }
+
+    char id[10];
+    printf("enter the product ID to delete: ");
+    scanf("%s", id);
+
+    int found = -1;
+    for (int i = 0; i < productCount; i++) {
+        if (strcmp(products[i].productId, id) == 0) {
+            found = i;
+            break;
+        }
+    }
+
+    if (found == -1) {
+        printf("product ID not found!\n");
+        backToMenu();
+        return;
+    }
+
+    printf("product name: %s\n", products[found].productName);
+    printf("are you sure you want to delete product?\n");
+    printf("[1] yes\n");
+    printf("[2] no\n");
+    printf("enter your choice: ");
+
+    int confirm;
+    scanf("%d", &confirm);
+
+    if (confirm == 1) {
+        
+        for (int i = found; i < productCount - 1; i++) {
+            products[i] = products[i + 1];
+        }
+        productCount--;
+
+        printf("product deleted successfully!\n");
+        saveProductFile("product.txt"); 
+    } else {
+        printf("delete cancelled.\n");
+    }
+	
+    backToMenu();
+}
+
+//luu file
+void saveProductFile(const char *file) {
+    FILE *f = fopen(file, "w");
+    if (f == NULL) {
+        printf("cannot open file to save products.\n");
+        return;
+    }
+    for (int i = 0; i < productCount; i++) {
+        fprintf(f, "%s|%s|%.2f|%d|%s\n",
+            products[i].productId,
+            products[i].productName,
+            products[i].price,
+            products[i].quantity,
+            products[i].categoryId);
+    }
+    fclose(f);
+    printf("\nproducts saved successfully\n");
+}
+
+void loadProductFile(const char *file) {
+    FILE *f = fopen(file, "r");
+    if (f == NULL) {
+        printf("no existing product data found.\n");
+        return;
+    }
+
+    productCount = 0;
+    while (fscanf(f, "%[^|]|%[^|]|%f|%d|%[^\n]\n",
+        products[productCount].productId,
+        products[productCount].productName,
+        &products[productCount].price,
+        &products[productCount].quantity,
+        products[productCount].categoryId) == 5) {
+        
+        productCount++;
+        if (productCount >= MAX_PRODUCT) break;
+    }
+
+    fclose(f);
 }
 
 
