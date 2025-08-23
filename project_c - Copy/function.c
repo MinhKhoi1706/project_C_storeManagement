@@ -166,13 +166,13 @@ void productMenu(){
                 deleteProduct();
                 break;
             case 5:
-                
+                searchProductByName();
                 break;
             case 6:
-                
+                sortProductMenu();
                 break;
             case 7:
-                
+                filterProductMenu();
                 break;
             case 0:
                 return;
@@ -426,6 +426,232 @@ void deleteProduct() {
 	
     backToMenu();
 }
+
+void searchProductByName() {
+    system("cls");
+    if (productCount == 0) {
+        printf("\nno product found.\n");
+        return;
+    }
+
+    char name[100];
+    printf("\nenter product name: ");
+    scanf(" %[^\n]", name);
+
+    for (int i = 0; name[i]; i++) {
+        if (name[i] >= 'A' && name[i] <= 'Z') {
+            name[i] += 32;
+        }
+    }
+
+    int found = 0;
+
+    for (int i = 0; i < productCount; i++) {
+        char temp[101];
+        strcpy(temp, products[i].productName);
+      
+        for (int j = 0; temp[j]; j++) {
+            if (temp[j] >= 'A' && temp[j] <= 'Z') {
+                temp[j] += 32;
+            }
+        }
+        if (strstr(temp, name) != NULL) {
+            found = 1;
+            break;
+        }
+    }
+
+    if (!found) {
+        printf("\nproduct not found\n");
+    } else {
+        printf("\n*** SEARCH RESULT ***\n");
+        printf("|--------------|-----------------------------|--------------|--------------|\n");
+        printf("| Product ID   | Product Name                | Category ID  | Price        |\n");
+        printf("|--------------|-----------------------------|--------------|--------------|\n");
+
+        for (int i = 0; i < productCount; i++) {
+            char temp[101];
+            strcpy(temp, products[i].productName);
+            for (int j = 0; temp[j]; j++) {
+                if (temp[j] >= 'A' && temp[j] <= 'Z') {
+                    temp[j] += 32;
+                }
+            }
+            if (strstr(temp, name) != NULL) {
+                printf("| %-12s | %-27s | %-12s | %-12.2f |\n",
+                       products[i].productId,
+                       products[i].productName,
+                       products[i].categoryId,
+                       products[i].price);
+            }
+        }
+
+        printf("|--------------|-----------------------------|--------------|--------------|\n");
+    }
+
+    backToMenu();
+}
+
+
+void sortProductByName(int order) {
+    system("cls");
+    if (productCount == 0) {
+        printf("\nNo products to sort.\n");
+        return;
+    }
+
+    for (int i = 0; i < productCount - 1; i++) {
+        for (int j = i + 1; j < productCount; j++) {
+            int cmp = strcmp(products[i].productName, products[j].productName);
+
+            if ((order && cmp > 0) || (!order && cmp < 0)) {
+                Product temp = products[i];
+                products[i] = products[j];
+                products[j] = temp;
+            }
+        }
+    }
+
+    printf("\nProducts sorted successfully!\n");
+}
+
+
+void sortProductMenu() {
+    int choice;
+    while (1) {
+        system("cls");
+        printf("\n=== SORT PRODUCT MENU ===\n");
+        printf("[1] sort by name (ascending)\n");
+        printf("[2] sort by name (descending)\n");
+        printf("[0] back to menu\n");
+        printf("==========================\n");
+        printf("choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                sortProductByName(1);
+                showAllProduct();
+                return;
+            case 2:
+                sortProductByName(0);
+                showAllProduct();
+                return;
+            case 0:
+                return;
+            default:
+                printf("invalid choice.\n");
+                break;
+        }
+    }
+}
+
+void filterProductByCategory() {
+    char id[10];
+    int foundCategory = 0, foundProduct = 0;
+    
+    renderCategory();
+
+    printf("enter category ID: ");
+    scanf("%s", id);
+
+   
+    for (int i = 0; i < categoryCount; i++) {
+        if (strcmp(categories[i].categoryId, id) == 0) {
+            foundCategory = 1;
+            printf("\nproducts in category %s - %s:\n", categories[i].categoryId, categories[i].categoryName);
+            printf("---------------------------------------------------\n");
+            printf("%-10s %-20s %-10s %-10s\n", "ID", "Name", "Price", "CategoryID");
+            printf("---------------------------------------------------\n");
+
+            for (int j = 0; j < productCount; j++) {
+                if (strcmp(products[j].categoryId, id) == 0) {
+                    printf("%-10s %-20s %-10.2f %-10s\n",
+                           products[j].productId,
+                           products[j].productName,
+                           products[j].price,
+                           products[j].categoryId);
+                    foundProduct = 1;
+                }
+            }
+
+            if (!foundProduct) {
+                printf("\nno product found in category.\n");
+            }
+            break;
+        }
+    }
+
+    if (!foundCategory) {
+        printf("\ncategory ID does not exist.\n");
+    }
+}
+
+void filterProductByPrice() {
+    float minPrice, maxPrice;
+    int found = 0;
+
+    printf("enter start price: ");
+    scanf("%f", &minPrice);
+    printf("enter end price: ");
+    scanf("%f", &maxPrice);
+
+    if (minPrice > maxPrice) {
+        printf("\ninvalid price range.\n");
+        return;
+    }
+
+    printf("\nproducts in price range %.2f - %.2f:\n", minPrice, maxPrice);
+    printf("---------------------------------------------------\n");
+    printf("%-10s %-20s %-10s %-10s\n", "ID", "Name", "Price", "CategoryID");
+    printf("---------------------------------------------------\n");
+
+    for (int i = 0; i < productCount; i++) {
+        if (products[i].price >= minPrice && products[i].price <= maxPrice) {
+            printf("%-10s %-20s %-10.2f %-10s\n",
+                   products[i].productId,
+                   products[i].productName,
+                   products[i].price,
+                   products[i].categoryId);
+            found = 1;
+        }
+    }
+
+    if (!found) {
+        printf("\nno product found in price range.\n");
+    }
+}
+
+void filterProductMenu() {
+    int choice;
+    while (1) {
+        system("cls");
+        printf("\n=== FILTER PRODUCT MENU ===\n");
+        printf("[1] filter by category\n");
+        printf("[2] filter by price range\n");
+        printf("[0] back to menu\n");
+        printf("============================\n");
+        printf("choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                filterProductByCategory();
+                break;
+            case 2:
+                filterProductByPrice();
+                break;
+            case 0:
+                return;
+            default:
+                printf("invalid choice!\n");
+                break;
+        }
+
+        system("pause");
+    }
+}
+
 
 //luu file
 void saveProductFile(const char *file) {
@@ -770,7 +996,7 @@ void sortCategoryMenu() {
         printf("[2] sort by name (descending)\n");
         printf("[0] back to menu\n");
         printf("==========================\n");
-        printf("enter your choice: ");
+        printf("choice: ");
         scanf("%d", &choice);
 
         switch (choice) {
